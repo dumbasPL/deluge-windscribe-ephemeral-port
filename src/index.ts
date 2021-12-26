@@ -1,9 +1,12 @@
 import 'dotenv/config';
-import {updateDelugePort} from './deluge';
+import {testDelugeConnection, updateDelugePort} from './deluge';
 import {getMyAccountCsrfToken, getPortForwardingInfo, login, removeEphemeralPort, requestMatchingEphemeralPort} from './windscribe';
 
 async function run() {
   try {
+    // try to connect to deluge once before we start spamming windscribe with pointless requests
+    await testDelugeConnection();
+
     // get a new session each time
     const sessionCookie = await login();
 

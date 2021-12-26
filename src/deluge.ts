@@ -17,6 +17,19 @@ if (!password || password.length == 0) {
 
 // functions
 
+export async function testDelugeConnection() {
+  try {
+    const client = new Deluge({
+      baseUrl: url,
+      password: password,
+    });
+
+    await client.connect();
+  } catch (error) {
+    throw new Error(`Failed to connect to deluge: ${error.message}`);
+  }
+}
+
 export async function updateDelugePort(port: number) {
   try {
     const client = new Deluge({
