@@ -12,7 +12,8 @@
     "outDir": "./dist",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "downlevelIteration": true
   },
   "include": [
     "src/**/*"
