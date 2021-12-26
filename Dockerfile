@@ -1,4 +1,4 @@
-FROM node:14-alpine as build
+FROM node:16-alpine as build
 
 WORKDIR /builder
 
@@ -10,7 +10,7 @@ COPY . .
 
 RUN yarn build
 
-FROM node:14-alpine
+FROM node:16-alpine
 
 ENV NODE_ENV=production
 ENV PORT=3000
