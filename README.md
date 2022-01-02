@@ -1,4 +1,4 @@
-# deluge-windscribe-ephemeral-port
+# [deluge-windscribe-ephemeral-port](https://github.com/dumbasPL/deluge-windscribe-ephemeral-port)
 
 Automatically create ephemeral ports in windscribe and update deluge config to use the new port
 
