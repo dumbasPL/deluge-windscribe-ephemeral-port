@@ -26,7 +26,7 @@ async function run() {
       portForwardingInfo.epfExpires = 0;
     }
 
-    // request new port of we don't have any
+    // request new port if we don't have any
     if (portForwardingInfo.epfExpires == 0) {
       console.log('no port configured, Requesting new matching ephemeral port');
       portForwardingInfo = await requestMatchingEphemeralPort(sessionCookie, csrfToken);
