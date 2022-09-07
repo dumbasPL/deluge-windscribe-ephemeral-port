@@ -14,6 +14,9 @@ FROM node:16-alpine
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV CACHE_DIR=/cache
+
+RUN mkdir -p $CACHE_DIR
 
 WORKDIR /app
 
