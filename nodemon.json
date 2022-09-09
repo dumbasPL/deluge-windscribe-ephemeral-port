@@ -3,7 +3,7 @@
   "ignore": [".git", "node_modules/", "dist/"],
   "watch": ["src/"],
   "execMap": {
-    "ts": "node -r ts-node/register"
+    "ts": "node --loader ts-node/esm"
   },
   "env": {
     "NODE_ENV": "development"
