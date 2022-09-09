@@ -33,7 +33,7 @@ Configuration is done using environment variables
 version: '3.8'
 services:
   deluge-windscribe-ephemeral-port:
-    image: dumbaspl/deluge-windscribe-ephemeral-port
+    image: dumbaspl/deluge-windscribe-ephemeral-port:2
     restart: unless-stopped
     volumes:
       - windscribe-cache:/cache
