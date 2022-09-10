@@ -23,7 +23,7 @@ Configuration is done using environment variables
 | WINDSCRIBE_RETRY_DELAY | how long to wait (in milliseconds) before retrying after a windscribe error. For example a failed login. | NO | 3600000 (1 hour) |
 | WINDSCRIBE_EXTRA_DELAY | how long to wait (in milliseconds) after the ephemeral port expires before trying to create a new one. | NO | 60000 (1 minute) |
 | DELUGE_RETRY_DELAY | how long to wait (in milliseconds) before retrying after a deluge error. For example a failed login. | NO | 300000 (5 minutes) |
-| CACHE_DIR | A directory where to store cached data like windscribe session cookies | YES | `/cache` in the docker container and `./cache` everywhere else |
+| CACHE_DIR | A directory where to store cached data like windscribe session cookies | NO | `/cache` in the docker container and `./cache` everywhere else |
 
 # Running
 
