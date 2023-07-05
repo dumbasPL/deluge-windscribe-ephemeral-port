@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  deluge:
+    image: lscr.io/linuxserver/deluge:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    # - DELUGE_LOGLEVEL=debug # this is a dev container after all
+    ports:
+      - 8112:8112 # webui
