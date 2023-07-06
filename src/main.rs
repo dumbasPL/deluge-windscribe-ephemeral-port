@@ -1,22 +1,18 @@
 use anyhow::Result;
-use deluge::DelugeClient;
+use transmission::TransmissionClient;
 
-mod deluge;
+pub mod deluge;
+pub mod transmission;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let client = DelugeClient::new("http://localhost:8112", "deluge")?;
+    let mut client = TransmissionClient::new("http://localhost:9091", None)?;
 
-    client.login().await?;
-    client.connect(None).await?;
+    println!("{:?}", client.get_session_arguments().await?);
 
-    println!("{:?}", client.get_version().await?);
+    client.set_session_arguments(false, 7272).await?;
 
-    println!("{:?}", client.get_port_config().await?);
-
-    client.set_port_config(false, [6969, 6969]).await?;
-
-    println!("{:?}", client.get_port_config().await?);
+    println!("{:?}", client.get_session_arguments().await?);
 
     Ok(())
 }
