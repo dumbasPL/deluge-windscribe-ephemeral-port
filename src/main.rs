@@ -1,18 +1,23 @@
 use anyhow::Result;
-use transmission::TransmissionClient;
+
+use crate::qbittorrent::QBittorrentClient;
 
 pub mod deluge;
+pub mod qbittorrent;
 pub mod transmission;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut client = TransmissionClient::new("http://localhost:9091", None)?;
+    let client = QBittorrentClient::new("http://localhost:9092", "admin", "adminadmin")?;
 
-    println!("{:?}", client.get_session_arguments().await?);
+    client.login().await?;
 
-    client.set_session_arguments(false, 7272).await?;
+    println!("{:?}", client.get_version().await?);
+    println!("{:?}", client.get_preferences().await?);
 
-    println!("{:?}", client.get_session_arguments().await?);
+    client.set_listen_port(2222).await?;
+
+    println!("{:?}", client.get_preferences().await?);
 
     Ok(())
 }

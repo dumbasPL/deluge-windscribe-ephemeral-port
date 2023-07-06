@@ -1,6 +1,7 @@
 version: "3.8"
 services:
   deluge:
+    # default password: deluge
     image: lscr.io/linuxserver/deluge:latest
     environment:
       - PUID=1000
@@ -20,3 +21,13 @@ services:
       # - TRANSMISSION_WEB_HOME= #optional
       # - USER= #optional
       # - PASS= #optional
+  qbittorrent:
+    # default password: adminadmin
+    image: lscr.io/linuxserver/qbittorrent:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=9092 # we chnage it because 8080 is a very common port already
+    ports:
+      - 9092:9092 # webui
