@@ -8,7 +8,7 @@ use self::types::{
 mod types;
 
 pub struct QBittorrentClient {
-    pub client: Client,
+    client: Client,
     url: String,
     username: String,
     password: String,

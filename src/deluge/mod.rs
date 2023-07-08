@@ -7,7 +7,7 @@ use self::types::{DelugeConfig, DelugeHost, DelugeRequest, DelugeResponse};
 mod types;
 
 pub struct DelugeClient {
-    pub client: Client,
+    client: Client,
     url: String,
     password: String,
 }
