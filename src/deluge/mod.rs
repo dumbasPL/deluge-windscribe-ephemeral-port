@@ -1,10 +1,9 @@
+use self::types::*;
 use anyhow::{anyhow, Result};
 use async_recursion::async_recursion;
 use reqwest::{Client, ClientBuilder};
 use serde_json::{json, Value};
 use std::sync::{Arc, Mutex};
-
-use self::types::{DelugeConfig, DelugeHost, DelugeRequest, DelugeResponse};
 
 mod types;
 

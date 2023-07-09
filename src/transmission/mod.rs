@@ -1,9 +1,10 @@
+use std::cell::RefCell;
+
+use self::types::*;
 use anyhow::{anyhow, Result};
 use reqwest::{Client, ClientBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::{json, Value};
-
-use self::types::{TransmissionRequest, TransmissionResponse, TransmissionSessionArguments};
 
 mod types;
 
@@ -16,7 +17,7 @@ pub struct TransmissionClient {
     client: Client,
     url: String,
     credentials: Option<TransmissionCredentials>,
-    session_id: Option<String>,
+    session_id: RefCell<Option<String>>,
 }
 
 impl TransmissionClient {
@@ -33,12 +34,12 @@ impl TransmissionClient {
             client,
             url,
             credentials,
-            session_id: None,
+            session_id: RefCell::new(None),
         })
     }
 
     async fn request_impl<T: DeserializeOwned>(
-        &mut self,
+        &self,
         method: &str,
         arguments: Value,
     ) -> Result<Option<T>> {
@@ -47,7 +48,7 @@ impl TransmissionClient {
             .post(&self.url)
             .json(&TransmissionRequest { method, arguments });
 
-        if let Some(session_id) = &self.session_id {
+        if let Some(session_id) = self.session_id.borrow().as_ref() {
             request_builder = request_builder.header("X-Transmission-Session-Id", session_id);
         };
 
@@ -58,7 +59,7 @@ impl TransmissionClient {
         let res = request_builder.send().await?;
 
         if let Some(session_id) = res.headers().get("X-Transmission-Session-Id") {
-            self.session_id = Some(session_id.to_str()?.to_string());
+            *self.session_id.borrow_mut() = Some(session_id.to_str()?.to_string());
         }
 
         match res.error_for_status() {
@@ -70,7 +71,7 @@ impl TransmissionClient {
                 }
             }
             Err(err) if err.status() == Some(StatusCode::CONFLICT) => {
-                if self.session_id.is_some() {
+                if self.session_id.borrow().is_some() {
                     Ok(None)
                 } else {
                     Err(anyhow!("Transmission session ID is missing"))
@@ -80,9 +81,9 @@ impl TransmissionClient {
         }
     }
 
-    async fn request<T: DeserializeOwned>(&mut self, method: &str, params: Value) -> Result<T> {
+    async fn request<T: DeserializeOwned>(&self, method: &str, params: Value) -> Result<T> {
         // start off by getting the session ID if we don't have it yet
-        if self.session_id.is_none() && method != "session-get" {
+        if self.session_id.borrow().is_none() && method != "session-get" {
             self.request_impl::<Value>("session-get", json!({})).await?;
         };
 
@@ -99,16 +100,22 @@ impl TransmissionClient {
         Ok(res.expect("Transmission session ID is missing"))
     }
 
-    pub async fn get_session_arguments(&mut self) -> Result<TransmissionSessionArguments> {
+    pub async fn get_version(&self) -> Result<String> {
+        let res: TransmissionSessionArgumentsVersion =
+            self.request("session-get", json!({})).await?;
+        Ok(res.version)
+    }
+
+    pub async fn get_session_arguments(&self) -> Result<TransmissionSessionArgumentsPort> {
         self.request("session-get", json!({})).await
     }
 
     pub async fn set_session_arguments(
-        &mut self,
+        &self,
         peer_port_random_on_start: bool,
         peer_port: u64,
     ) -> Result<()> {
-        let arguments = TransmissionSessionArguments {
+        let arguments = TransmissionSessionArgumentsPort {
             peer_port,
             peer_port_random_on_start,
         };

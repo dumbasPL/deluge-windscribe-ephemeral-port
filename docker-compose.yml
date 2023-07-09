@@ -16,11 +16,11 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
+      # - TRANSMISSION_WEB_HOME= #optional
+      # - USER=admin #optional
+      # - PASS=test #optional
     ports:
       - 9091:9091 # webui
-      # - TRANSMISSION_WEB_HOME= #optional
-      # - USER= #optional
-      # - PASS= #optional
   qbittorrent:
     # default password: adminadmin
     image: lscr.io/linuxserver/qbittorrent:latest

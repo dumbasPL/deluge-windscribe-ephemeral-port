@@ -1,11 +1,8 @@
+use self::types::*;
 use anyhow::{anyhow, Result};
 use async_recursion::async_recursion;
 use reqwest::{Client, ClientBuilder, Method, Response, StatusCode};
 use serde::Serialize;
-
-use self::types::{
-    QBittorrentLoginRequest, QBittorrentPreferences, QBittorrentSetPreferencesRequest,
-};
 
 mod types;
 
