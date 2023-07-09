@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::fmt;
 
 #[derive(Serialize, Debug)]
 pub struct DelugeRequest {
@@ -26,6 +27,16 @@ pub struct DelugeHost {
     pub ip: String,
     pub port: u64,
     pub name: String,
+}
+
+impl fmt::Debug for DelugeHost {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{} (name: {}, address: {}:{})",
+            self.id, self.name, self.ip, self.port
+        )
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]

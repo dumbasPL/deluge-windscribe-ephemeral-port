@@ -1,6 +1,8 @@
-use anyhow::{anyhow, Ok, Result};
+use anyhow::{anyhow, Result};
+use async_recursion::async_recursion;
 use reqwest::{Client, ClientBuilder};
 use serde_json::{json, Value};
+use std::sync::{Arc, Mutex};
 
 use self::types::{DelugeConfig, DelugeHost, DelugeRequest, DelugeResponse};
 
@@ -10,10 +12,8 @@ pub struct DelugeClient {
     client: Client,
     url: String,
     password: String,
+    request_id: Arc<Mutex<u32>>,
 }
-
-// FIXME: better error handling
-// FIXME: handle cookies expiring
 
 impl DelugeClient {
     pub fn new(base_url: &str, password: &str) -> Result<Self> {
@@ -27,16 +27,27 @@ impl DelugeClient {
             client,
             url,
             password: password.to_string(),
+            request_id: Arc::new(Mutex::new(0)),
         })
     }
 
+    fn get_next_request_id(&self) -> u32 {
+        let mut request_id = self.request_id.lock().unwrap();
+        *request_id += 1;
+
+        // not sure if this is necessary, but just in case
+        if *request_id > 0x1000 {
+            *request_id = 1;
+        }
+        *request_id
+    }
+
+    #[async_recursion]
     async fn request(&self, method: &str, params: &[Value]) -> Result<Value> {
         let request = DelugeRequest {
             method: method.to_string(),
             params: params.to_vec(),
-            // FIXME: in theory we should increment this id, but since we are using the HTTP transport,
-            // !      we don't really need to since we are not reusing the connection.
-            id: 1,
+            id: self.get_next_request_id(),
         };
 
         let res: DelugeResponse = self
@@ -48,11 +59,22 @@ impl DelugeClient {
             .json()
             .await?;
 
-        if let Some(error) = res.error {
-            return Err(anyhow!("Deluge error {}: {}", error.code, error.message));
+        match res.id {
+            id if id == request.id => (),
+            _ => return Err(anyhow!("Invalid response from Deluge")),
         }
 
-        Ok(res.result)
+        match res.error {
+            Some(error) => match error.code {
+                // Not authenticated
+                1 if method != "auth.login" => {
+                    self.login().await?;
+                    self.request(method, params).await
+                }
+                code => Err(anyhow!("Deluge error {}: {}", code, error.message)),
+            },
+            None => Ok(res.result),
+        }
     }
 
     pub async fn login(&self) -> Result<()> {
@@ -134,10 +156,10 @@ impl DelugeClient {
         serde_json::from_value(config).map_err(|_| anyhow!("Invalid response from Deluge"))
     }
 
-    pub async fn set_port_config(&self, random_port: bool, listen_ports: [u64; 2]) -> Result<()> {
+    pub async fn set_port_config(&self, random_port: bool, listen_port: u64) -> Result<()> {
         let params = vec![json!(DelugeConfig {
             random_port,
-            listen_ports,
+            listen_ports: [listen_port, listen_port],
         })];
         self.request("core.set_config", &params).await?;
 
