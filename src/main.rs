@@ -4,7 +4,7 @@ use windscribe_ephemeral_port::{cache::SimpleCache, windscribe::WindscribeClient
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let cache = SimpleCache::new(Some(PathBuf::from("test.json")))?;
+    let cache = SimpleCache::load(PathBuf::from("test.json")).await?;
     let client = WindscribeClient::new("", "", Some(cache))?;
 
     println!("{:?}", client.get_epf_info().await?);

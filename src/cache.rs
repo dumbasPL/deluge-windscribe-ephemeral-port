@@ -1,12 +1,10 @@
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::{
-    cell::RefCell,
-    collections::HashMap,
+use std::{collections::HashMap, io::ErrorKind, path::PathBuf, sync::Mutex};
+use tokio::{
     fs::File,
-    io::{BufReader, BufWriter, ErrorKind},
-    path::PathBuf,
+    io::{AsyncReadExt, AsyncWriteExt},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -16,51 +14,53 @@ struct CacheEntry {
 }
 
 pub struct SimpleCache {
-    cache: RefCell<HashMap<String, CacheEntry>>,
+    cache: Mutex<HashMap<String, CacheEntry>>,
     file: Option<PathBuf>,
 }
 
 impl SimpleCache {
-    pub fn new(file: Option<PathBuf>) -> Result<Self> {
-        let cache = match &file {
-            Some(file) => {
-                let file = File::open(file);
-                match file {
-                    Ok(file) => {
-                        let reader = BufReader::new(file);
-                        serde_json::from_reader(reader)?
-                    }
-                    Err(e) => match e.kind() {
-                        ErrorKind::NotFound => HashMap::new(),
-                        _ => return Err(e.into()),
-                    },
-                }
+    pub async fn load(file: PathBuf) -> Result<Self> {
+        let cache = match File::open(&file).await {
+            Ok(mut file) => {
+                let mut contents = vec![];
+                file.read_to_end(&mut contents).await?;
+                serde_json::from_slice(&contents)?
             }
-            None => HashMap::new(),
+            Err(e) => match e.kind() {
+                ErrorKind::NotFound => HashMap::new(),
+                _ => return Err(e.into()),
+            },
         };
 
         let new_self = Self {
-            cache: RefCell::new(cache),
-            file,
+            cache: Mutex::new(cache),
+            file: Some(file),
         };
 
-        new_self.save()?;
+        new_self.save().await?;
 
         Ok(new_self)
     }
 
-    fn save(&self) -> Result<()> {
+    pub fn new() -> Self {
+        Self {
+            cache: Mutex::new(HashMap::new()),
+            file: None,
+        }
+    }
+
+    async fn save(&self) -> Result<()> {
         if let Some(file) = &self.file {
-            let file = File::create(file)?;
-            let writer = BufWriter::new(file);
-            serde_json::to_writer(writer, &self.cache)?;
+            let mut file = File::create(file).await?;
+            let contents = serde_json::to_vec(&self.cache)?;
+            file.write_all(&contents).await?;
         }
 
         Ok(())
     }
 
     pub fn get(&self, key: &str) -> Option<String> {
-        let mut cache = self.cache.borrow_mut();
+        let mut cache = self.cache.lock().unwrap();
         match cache.get(key) {
             Some(entry) => match entry.expires {
                 Some(expires) if expires <= Utc::now() => {
@@ -73,17 +73,22 @@ impl SimpleCache {
         }
     }
 
-    pub fn set(&self, key: &str, value: String, expires: Option<DateTime<Utc>>) -> Result<()> {
+    pub async fn set(
+        &self,
+        key: &str,
+        value: String,
+        expires: Option<DateTime<Utc>>,
+    ) -> Result<()> {
         self.cache
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .insert(key.to_string(), CacheEntry { value, expires });
-        self.save()
+        self.save().await
     }
 }
 
 impl Default for SimpleCache {
     fn default() -> Self {
-        // unwrap() is safe here because it can't fail if there is no file IO
-        Self::new(None).unwrap()
+        Self::new()
     }
 }

@@ -115,11 +115,13 @@ impl WindscribeClient {
                     (expires_chrono - Utc::now()).num_minutes()
                 );
 
-                self.cache.set(
-                    SESSION_COOKIE_CACHE,
-                    session_cookie.value().to_string(),
-                    Some(expires_chrono),
-                )?;
+                self.cache
+                    .set(
+                        SESSION_COOKIE_CACHE,
+                        session_cookie.value().to_string(),
+                        Some(expires_chrono),
+                    )
+                    .await?;
 
                 Ok(session_cookie.value().to_string())
             }
