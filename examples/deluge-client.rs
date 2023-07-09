@@ -6,7 +6,7 @@ use windscribe_ephemeral_port::deluge::DelugeClient;
 #[command(author, version, about, long_about = None)]
 struct Cli {
     /// The URL of the Deluge web ui
-    #[arg(short, long, default_value = "http://localhost:8112")]
+    #[arg(short = 'U', long, default_value = "http://localhost:8112")]
     url: String,
 
     /// The password of the Deluge web ui
