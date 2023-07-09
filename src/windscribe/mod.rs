@@ -1,3 +1,4 @@
+use self::types::*;
 use crate::{
     cache::SimpleCache,
     constants::WINDSCRIBE_USER_AGENT,
@@ -15,11 +16,8 @@ use reqwest::{
 use scraper::{Html, Selector};
 use serde::Serialize;
 
-use self::types::{
-    WindscribeCsrfToken, WindscribeDeleteEpfRequest, WindscribeEpfInfo, WindscribeLoginRequest,
-};
-
 mod types;
+pub use types::WindscribeEpfInfo;
 
 const SESSION_COOKIE_CACHE: &str = "windscribe_session_cookie";
 
@@ -31,7 +29,7 @@ pub struct WindscribeClient {
 }
 
 impl WindscribeClient {
-    pub fn new(username: &str, password: &str, cache: Option<SimpleCache>) -> Result<Self> {
+    pub fn new(username: &str, password: &str, cache: SimpleCache) -> Result<Self> {
         let client = ClientBuilder::new()
             .redirect(Policy::none())
             .gzip(true)
@@ -39,7 +37,7 @@ impl WindscribeClient {
             .build()?;
         Ok(Self {
             client,
-            cache: cache.unwrap_or_default(),
+            cache,
             username: username.to_string(),
             password: password.to_string(),
         })
@@ -267,7 +265,7 @@ impl WindscribeClient {
         })
     }
 
-    pub async fn remove_epf(&self, csrf_token: &WindscribeCsrfToken) -> Result<()> {
+    pub async fn remove_epf(&self, csrf_token: &WindscribeCsrfToken) -> Result<bool> {
         let body = WindscribeDeleteEpfRequest {
             ctime: csrf_token.csrf_time,
             ctoken: &csrf_token.csrf_token,
@@ -302,12 +300,7 @@ impl WindscribeClient {
         }
 
         match res {
-            Ok(res) if res.success == 1 => {
-                if !res.epf {
-                    println!("EPF is already disabled")
-                }
-                Ok(())
-            }
+            Ok(res) if res.success == 1 => Ok(res.epf),
             Ok(WindscribeDeleteEpfResponse {
                 success: _,
                 epf: _,
@@ -320,14 +313,15 @@ impl WindscribeClient {
         }
     }
 
-    pub async fn request_matching_epf(
+    pub async fn request_epf(
         &self,
         csrf_token: &WindscribeCsrfToken,
+        port: Option<u64>,
     ) -> Result<WindscribeEpfInfo> {
         let body = WindscribeRequestEpfRequest {
             ctime: csrf_token.csrf_time,
             ctoken: &csrf_token.csrf_token,
-            port: "", // empty string means matching port
+            port: &port.map(|p| p.to_string()).unwrap_or_default(),
         };
 
         let mut res = self

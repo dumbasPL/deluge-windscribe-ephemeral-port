@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +20,7 @@ pub struct WindscribeLoginRequest<'a> {
     pub code: &'a str,
 }
 
-#[derive(Debug)]
+#[derive(PartialEq)]
 pub enum WindscribeEpfInfo {
     Disabled,
     Enabled {
@@ -26,6 +28,23 @@ pub enum WindscribeEpfInfo {
         internal_port: u64,
         external_port: u64,
     },
+}
+
+impl Debug for WindscribeEpfInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WindscribeEpfInfo::Disabled => write!(f, "Disabled"),
+            WindscribeEpfInfo::Enabled {
+                expires,
+                internal_port,
+                external_port,
+            } => write!(
+                f,
+                "Enabled (created: {}, internal port: {}, external port: {})",
+                expires, internal_port, external_port
+            ),
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
