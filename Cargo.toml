@@ -1,7 +1,14 @@
 [package]
 name = "windscribe-ephemeral-port"
 version = "0.1.0"
+authors = ["nezu"]
 edition = "2021"
+description = "Automatically create windscribe ephemeral ports and update torrent clients"
+repository = "https://github.com/dumbasPL/windscribe-ephemeral-port"
+license = "MIT"
+keywords = ["windscribe", "vpn", "torrent", "port", "port-forwarding", "ephemeral"]
+categories = ["command-line-utilities", "config", "network-programming"]
+exclude = ["docker-compose.yml", ".editorconfig"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
