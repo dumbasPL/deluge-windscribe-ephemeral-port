@@ -8,7 +8,7 @@ repository = "https://github.com/dumbasPL/windscribe-ephemeral-port"
 license = "MIT"
 keywords = ["windscribe", "vpn", "torrent", "port", "port-forwarding", "ephemeral"]
 categories = ["command-line-utilities", "config", "network-programming"]
-exclude = ["docker-compose.yml", ".editorconfig"]
+exclude = ["docker-compose.yml", ".editorconfig", "config"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -19,6 +19,7 @@ async-recursion = "1"
 reqwest = { version = "0.11", features = ["json", "cookies", "gzip"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde_yaml = "0.9"
 scraper = "0.17"
 chrono = { version = "0.4", features = ["serde"] }
 cookie = "0.17"

@@ -1,0 +1,52 @@
+windscribe:
+  username: change_me
+  password: Ch4ng3M3
+
+  # how often to check the website if the port is still valid
+  # optional, defaults to checking only when the port is about to expire
+  # set this if you want to check more often
+  # check_interval: 3600 # 1 hour
+
+  # how long to wait (in seconds) before retrying after a windscribe error. For example a failed login.
+  retry_delay: 3600 # 1 hour
+
+  # how long to wait (in seconds) after the ephemeral port expires before renewing it
+  # this value can be negative, in which case the port will be deleted and renewed before it expires
+  extra_delay: 10 # 10 seconds
+
+clients:
+  - name: Example Deluge client
+    type: deluge
+    # how often to check if the port needs to be updated
+    check_interval: 60 # 1 minute
+    config:
+      url: http://localhost:8112
+      password: deluge
+      # Optional, only needed if you have multiple hosts
+      # If not specified, the first host will be used
+      # host_id:
+  - name: Example qBittorrent client
+    type: qbittorrent
+    # how often to check if the port needs to be updated
+    check_interval: 60 # 1 minute
+    config:
+      url: http://localhost:9092
+      username: admin
+      password: adminadmin
+  - name: Example Transmission client
+    type: transmission
+    # how often to check if the port needs to be updated
+    check_interval: 60 # 1 minute
+    config:
+      url: http://localhost:9091
+      # Basic auth credentials, optional
+      # username: 
+      # password: 
+  - name: Example exec client
+    type: exec
+    # how often to execute the command
+    check_interval: 60 # 1 minute
+    config:
+      # the command needs to contain the placeholder {},
+      # this is where the new port will be inserted
+      command: echo "the new windscribe ephemeral port is {}"
