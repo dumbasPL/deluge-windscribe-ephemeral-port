@@ -25,3 +25,4 @@ cookie = "0.17"
 lazy-regex = "3.0"
 clap = { version = "4.3", features = ["derive", "env"] }
 directories = "5.0"
+shell-words = "1.1"

@@ -5,6 +5,7 @@ pub mod constants {
 
 pub mod cache;
 pub mod deluge;
+pub mod exec;
 pub mod qbittorrent;
 pub mod transmission;
 pub mod windscribe;
