@@ -17,8 +17,8 @@ windscribe:
 clients:
   - name: Example Deluge client
     type: deluge
-    # how often to check if the port needs to be updated
-    check_interval: 60 # 1 minute
+    # how often to check if the port needs to be updated, optional
+    # check_interval: 60 # 1 minute
     config:
       url: http://localhost:8112
       password: deluge
@@ -27,16 +27,16 @@ clients:
       # host_id:
   - name: Example qBittorrent client
     type: qbittorrent
-    # how often to check if the port needs to be updated
-    check_interval: 60 # 1 minute
+    # how often to check if the port needs to be updated, optional
+    # check_interval: 60 # 1 minute
     config:
       url: http://localhost:9092
       username: admin
       password: adminadmin
   - name: Example Transmission client
     type: transmission
-    # how often to check if the port needs to be updated
-    check_interval: 60 # 1 minute
+    # how often to check if the port needs to be updated, optional
+    # check_interval: 60 # 1 minute
     config:
       url: http://localhost:9091
       # Basic auth credentials, optional
@@ -44,8 +44,9 @@ clients:
       # password: 
   - name: Example exec client
     type: exec
-    # how often to execute the command
-    check_interval: 60 # 1 minute
+    # how often to execute the command, optional
+    # if not specified, the command will only be executed when the port changes
+    # check_interval: 60 # 1 minute
     config:
       # the command needs to contain the placeholder {},
       # this is where the new port will be inserted

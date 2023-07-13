@@ -25,7 +25,7 @@ pub struct WindscribeConfig {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientConfig {
     pub name: String,
-    pub check_interval: u64,
+    pub check_interval: Option<u64>,
     #[serde(flatten)]
     pub config: ClientConfigType,
 }
