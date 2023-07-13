@@ -1,9 +1,11 @@
 use self::types::*;
+use crate::client::PortClient;
 use anyhow::{anyhow, Result};
 use async_recursion::async_recursion;
+use async_trait::async_trait;
 use reqwest::{Client, ClientBuilder};
 use serde_json::{json, Value};
-use std::sync::{Arc, Mutex};
+use tokio::sync::Mutex;
 
 mod types;
 
@@ -11,7 +13,7 @@ pub struct DelugeClient {
     client: Client,
     url: String,
     password: String,
-    request_id: Arc<Mutex<u32>>,
+    request_id: Mutex<u32>,
 }
 
 impl DelugeClient {
@@ -26,12 +28,12 @@ impl DelugeClient {
             client,
             url,
             password: password.to_string(),
-            request_id: Arc::new(Mutex::new(0)),
+            request_id: Mutex::new(0),
         })
     }
 
-    fn get_next_request_id(&self) -> u32 {
-        let mut request_id = self.request_id.lock().unwrap();
+    async fn get_next_request_id(&self) -> u32 {
+        let mut request_id = self.request_id.lock().await;
         *request_id += 1;
 
         // not sure if this is necessary, but just in case
@@ -46,7 +48,7 @@ impl DelugeClient {
         let request = DelugeRequest {
             method: method.to_string(),
             params: params.to_vec(),
-            id: self.get_next_request_id(),
+            id: self.get_next_request_id().await,
         };
 
         let res: DelugeResponse = self
@@ -172,5 +174,20 @@ impl DelugeClient {
             Value::String(version) => Ok(version),
             _ => Err(anyhow!("Invalid response from Deluge")),
         }
+    }
+}
+
+#[async_trait]
+impl PortClient for DelugeClient {
+    async fn get_port(&self) -> Result<Option<u64>> {
+        let config = self.get_port_config().await?;
+        match config.random_port {
+            true => Ok(None),
+            false => Ok(Some(config.listen_ports[0])),
+        }
+    }
+
+    async fn set_port(&self, port: u64) -> Result<()> {
+        self.set_port_config(false, port).await
     }
 }

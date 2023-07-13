@@ -1,6 +1,8 @@
 use self::types::*;
+use crate::client::PortClient;
 use anyhow::{anyhow, Result};
 use async_recursion::async_recursion;
+use async_trait::async_trait;
 use reqwest::{Client, ClientBuilder, Method, Response, StatusCode};
 use serde::Serialize;
 
@@ -126,5 +128,20 @@ impl QBittorrentClient {
             Ok(_) => Ok(()),
             Err(e) => Err(e.into()),
         }
+    }
+}
+
+#[async_trait]
+impl PortClient for QBittorrentClient {
+    async fn get_port(&self) -> Result<Option<u64>> {
+        let preferences = self.get_preferences().await?;
+        match preferences.listen_port {
+            0 => Ok(None),
+            port => Ok(Some(port)),
+        }
+    }
+
+    async fn set_port(&self, port: u64) -> Result<()> {
+        self.set_listen_port(port).await
     }
 }

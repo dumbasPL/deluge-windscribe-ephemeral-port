@@ -106,7 +106,10 @@ impl WindscribeClient {
                     .expires_datetime()
                     .ok_or(anyhow!("Session cookie does not have an expiration date"))?
                     .unix_timestamp();
-                let expires_chrono = Utc.timestamp_opt(expires, 0).unwrap();
+                let expires_chrono = Utc
+                    .timestamp_opt(expires, 0)
+                    .single()
+                    .ok_or(anyhow!("Session cookie expiration date is not valid"))?;
 
                 println!(
                     "Successfully logged into windscribe, session expires in {} minutes",
@@ -259,7 +262,10 @@ impl WindscribeClient {
         }
 
         Ok(WindscribeEpfInfo::Enabled {
-            expires: Utc.timestamp_opt(epf_expires, 0).unwrap(),
+            expires: Utc.timestamp_opt(epf_expires, 0).earliest().ok_or(anyhow!(
+                "Failed to parse epf expires timestamp: {}",
+                epf_expires
+            ))?,
             internal_port: epf_ports[0],
             external_port: epf_ports[1],
         })
@@ -360,7 +366,13 @@ impl WindscribeClient {
             }) if success == 1 && epf.is_some() => {
                 let epf_info = epf.unwrap();
                 Ok(WindscribeEpfInfo::Enabled {
-                    expires: Utc.timestamp_opt(epf_info.start_ts, 0).unwrap(),
+                    expires: Utc
+                        .timestamp_opt(epf_info.start_ts, 0)
+                        .earliest()
+                        .ok_or(anyhow!(
+                            "Failed to parse epf start timestamp: {}",
+                            epf_info.start_ts
+                        ))?,
                     internal_port: epf_info.int,
                     external_port: epf_info.ext,
                 })

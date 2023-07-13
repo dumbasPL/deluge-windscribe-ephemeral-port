@@ -4,6 +4,8 @@ pub mod constants {
 }
 
 pub mod cache;
+pub mod client;
+pub mod config;
 pub mod deluge;
 pub mod exec;
 pub mod qbittorrent;

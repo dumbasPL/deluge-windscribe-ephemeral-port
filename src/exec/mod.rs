@@ -1,4 +1,6 @@
+use crate::client::PortClient;
 use anyhow::{anyhow, Result};
+use async_trait::async_trait;
 use std::process::Stdio;
 use tokio::process::Command;
 
@@ -60,5 +62,16 @@ impl ExecClient {
             #[cfg(not(unix))]
             Err(anyhow!("Command exited with unknown status"))
         }
+    }
+}
+
+#[async_trait]
+impl PortClient for ExecClient {
+    async fn get_port(&self) -> Result<Option<u64>> {
+        Ok(None)
+    }
+
+    async fn set_port(&self, port: u64) -> Result<()> {
+        self.exec(port).await
     }
 }

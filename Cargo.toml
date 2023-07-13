@@ -27,3 +27,5 @@ lazy-regex = "3.0"
 clap = { version = "4.3", features = ["derive", "env"] }
 directories = "5.0"
 shell-words = "1.1"
+async-trait = "0.1"
+tokio-cron-scheduler = "0.9"
