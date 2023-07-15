@@ -7,6 +7,8 @@ use std::{
 };
 use tokio::fs;
 
+use crate::cache::SimpleCache;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub windscribe: WindscribeConfig,
@@ -64,9 +66,13 @@ pub struct ExecClientConfig {
     pub command: String,
 }
 
-fn get_config_dirs() -> Vec<PathBuf> {
-    let cfg_dir = ProjectDirs::from("cc", "nezu", "windscribe-ephemeral-port")
-        .map(|dirs| dirs.config_dir().to_owned());
+pub fn get_config_dir() -> Option<PathBuf> {
+    ProjectDirs::from("cc", "nezu", "windscribe-ephemeral-port")
+        .map(|dirs| dirs.config_dir().to_owned())
+}
+
+fn get_config_paths(filename: &str) -> Vec<PathBuf> {
+    let cfg_dir = get_config_dir();
     let exe_dir = current_exe()
         .ok()
         .and_then(|path| path.parent().map(|path| path.to_owned()));
@@ -74,14 +80,14 @@ fn get_config_dirs() -> Vec<PathBuf> {
     vec![cfg_dir, exe_dir, current_dir]
         .into_iter()
         .filter_map(|path| path)
-        .map(|path| path.join("config.yaml"))
+        .map(|path| path.join(filename))
         .collect()
 }
 
 pub async fn load_config(config_path: Option<PathBuf>) -> Result<Config> {
     let config_paths = match config_path {
         Some(path) => vec![path],
-        None => get_config_dirs(),
+        None => get_config_paths("config.yaml"),
     };
 
     let config_path = config_paths
@@ -92,4 +98,30 @@ pub async fn load_config(config_path: Option<PathBuf>) -> Result<Config> {
     let config = fs::read_to_string(config_path).await?;
     let config: Config = serde_yaml::from_str(&config)?;
     Ok(config)
+}
+
+pub async fn get_cache(cache_path: Option<PathBuf>, name: &str) -> Result<SimpleCache> {
+    let cache_dir = match cache_path {
+        Some(path) => vec![path],
+        None => get_config_paths(format!("{}.json", name).as_str()),
+    };
+
+    let existing_cache_path = cache_dir.iter().find(|path| path.exists());
+    let cache_path = match existing_cache_path {
+        Some(path) => Some(path),
+        None => cache_dir.first(),
+    };
+
+    // create cache directory if it doesn't exist
+    if let Some(directory) = cache_path.and_then(|path| path.parent()) {
+        fs::create_dir_all(directory).await?;
+    };
+
+    match cache_path {
+        Some(path) => SimpleCache::load(path.to_owned()).await,
+        None => {
+            println!("No cache path found, using in-memory cache");
+            Ok(SimpleCache::new())
+        }
+    }
 }
