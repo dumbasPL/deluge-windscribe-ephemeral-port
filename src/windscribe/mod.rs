@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use anyhow::{anyhow, Result};
-use chrono::{TimeZone, Utc};
+use chrono::{DateTime, Duration, TimeZone, Utc};
 use cookie::Cookie;
 use lazy_regex::regex_captures;
 use reqwest::{
@@ -262,10 +262,7 @@ impl WindscribeClient {
         }
 
         Ok(WindscribeEpfInfo::Enabled {
-            expires: Utc.timestamp_opt(epf_expires, 0).earliest().ok_or(anyhow!(
-                "Failed to parse epf expires timestamp: {}",
-                epf_expires
-            ))?,
+            expires: get_epf_expiration(epf_expires)?,
             internal_port: epf_ports[0],
             external_port: epf_ports[1],
         })
@@ -366,13 +363,7 @@ impl WindscribeClient {
             }) if success == 1 && epf.is_some() => {
                 let epf_info = epf.unwrap();
                 Ok(WindscribeEpfInfo::Enabled {
-                    expires: Utc
-                        .timestamp_opt(epf_info.start_ts, 0)
-                        .earliest()
-                        .ok_or(anyhow!(
-                            "Failed to parse epf start timestamp: {}",
-                            epf_info.start_ts
-                        ))?,
+                    expires: get_epf_expiration(epf_info.start_ts)?,
                     internal_port: epf_info.int,
                     external_port: epf_info.ext,
                 })
@@ -388,4 +379,14 @@ impl WindscribeClient {
             Err(e) => Err(e.into()),
         }
     }
+}
+
+fn get_epf_expiration(start_time: i64) -> Result<DateTime<Utc>> {
+    let expires = Utc.timestamp_opt(start_time, 0).earliest().ok_or(anyhow!(
+        "Failed to parse epf expires timestamp: {}",
+        start_time
+    ))?;
+
+    // this is hardcoded in the client side js
+    Ok(expires + Duration::days(7))
 }
