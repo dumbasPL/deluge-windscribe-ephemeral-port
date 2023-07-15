@@ -20,29 +20,32 @@ pub struct WindscribeLoginRequest<'a> {
     pub code: &'a str,
 }
 
-#[derive(PartialEq)]
-pub enum WindscribeEpfInfo {
-    Disabled,
-    Enabled {
-        expires: DateTime<Utc>,
-        internal_port: u64,
-        external_port: u64,
-    },
+pub struct WindscribeEpfInfo {
+    pub expires: DateTime<Utc>,
+    pub internal_port: u64,
+    pub external_port: u64,
 }
 
 impl Debug for WindscribeEpfInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "expires: {}, internal port: {}, external port: {}",
+            self.expires, self.internal_port, self.external_port
+        )
+    }
+}
+
+pub enum WindscribeEpfStatus {
+    Disabled,
+    Enabled(WindscribeEpfInfo),
+}
+
+impl Debug for WindscribeEpfStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            WindscribeEpfInfo::Disabled => write!(f, "Disabled"),
-            WindscribeEpfInfo::Enabled {
-                expires,
-                internal_port,
-                external_port,
-            } => write!(
-                f,
-                "Enabled (created: {}, internal port: {}, external port: {})",
-                expires, internal_port, external_port
-            ),
+            WindscribeEpfStatus::Disabled => write!(f, "Disabled"),
+            WindscribeEpfStatus::Enabled(info) => write!(f, "Enabled ({:?})", info),
         }
     }
 }

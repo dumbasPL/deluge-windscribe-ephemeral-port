@@ -17,7 +17,7 @@ use scraper::{Html, Selector};
 use serde::Serialize;
 
 mod types;
-pub use types::WindscribeEpfInfo;
+pub use types::{WindscribeEpfInfo, WindscribeEpfStatus};
 
 const SESSION_COOKIE_CACHE: &str = "windscribe_session_cookie";
 
@@ -201,7 +201,7 @@ impl WindscribeClient {
         })
     }
 
-    pub async fn get_epf_info(&self) -> Result<WindscribeEpfInfo> {
+    pub async fn get_epf_info(&self) -> Result<WindscribeEpfStatus> {
         let mut res = self
             .request::<()>(
                 Method::GET,
@@ -246,7 +246,7 @@ impl WindscribeClient {
             .parse::<i64>()?;
 
         if epf_expires == 0 {
-            return Ok(WindscribeEpfInfo::Disabled);
+            return Ok(WindscribeEpfStatus::Disabled);
         }
 
         let ports_selector = Selector::parse("#epf-port-info span").unwrap();
@@ -261,11 +261,11 @@ impl WindscribeClient {
             return Err(anyhow!("Failed to find epf ports"));
         }
 
-        Ok(WindscribeEpfInfo::Enabled {
+        Ok(WindscribeEpfStatus::Enabled(WindscribeEpfInfo {
             expires: get_epf_expiration(epf_expires)?,
             internal_port: epf_ports[0],
             external_port: epf_ports[1],
-        })
+        }))
     }
 
     pub async fn remove_epf(&self, csrf_token: &WindscribeCsrfToken) -> Result<bool> {
@@ -362,7 +362,7 @@ impl WindscribeClient {
                 success,
             }) if success == 1 && epf.is_some() => {
                 let epf_info = epf.unwrap();
-                Ok(WindscribeEpfInfo::Enabled {
+                Ok(WindscribeEpfInfo {
                     expires: get_epf_expiration(epf_info.start_ts)?,
                     internal_port: epf_info.int,
                     external_port: epf_info.ext,

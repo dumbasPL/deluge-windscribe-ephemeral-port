@@ -4,7 +4,7 @@ use directories::ProjectDirs;
 use tokio::fs;
 use windscribe_ephemeral_port::{
     cache::SimpleCache,
-    windscribe::{WindscribeClient, WindscribeEpfInfo},
+    windscribe::{WindscribeClient, WindscribeEpfStatus},
 };
 
 #[derive(Parser, Debug)]
@@ -71,7 +71,7 @@ async fn main() -> Result<()> {
     match cli.subcommand {
         Subcommand::GetPort => Ok(()),
         Subcommand::DeletePort => {
-            if info == WindscribeEpfInfo::Disabled {
+            if matches!(info, WindscribeEpfStatus::Disabled) {
                 return Err(anyhow!("No port forwarding to delete"));
             }
 
@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
             println!("Getting CSRF token...");
             let csrf_token = client.get_my_account_csrf_token().await?;
 
-            if delete && info != WindscribeEpfInfo::Disabled {
+            if delete && matches!(info, WindscribeEpfStatus::Enabled(_)) {
                 println!("Deleting current port forwarding...");
                 let deleted = client.remove_epf(&csrf_token).await?;
                 match deleted {
