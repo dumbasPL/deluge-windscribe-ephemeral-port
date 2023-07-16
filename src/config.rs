@@ -1,3 +1,4 @@
+use crate::cache::SimpleCache;
 use anyhow::{anyhow, Result};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
@@ -6,8 +7,6 @@ use std::{
     path::PathBuf,
 };
 use tokio::fs;
-
-use crate::cache::SimpleCache;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -96,7 +95,9 @@ pub async fn load_config(config_path: Option<PathBuf>) -> Result<Config> {
         .ok_or_else(|| anyhow!("No config file found, tried: {:?}", config_paths))?;
 
     let config = fs::read_to_string(config_path).await?;
-    let config: Config = serde_yaml::from_str(&config)?;
+    let config: Config =
+        serde_path_to_error::deserialize(serde_yaml::Deserializer::from_str(&config))?;
+
     Ok(config)
 }
 
