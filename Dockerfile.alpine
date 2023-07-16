@@ -1,0 +1,21 @@
+FROM rust:1-alpine as builder
+
+RUN apk add --no-cache musl-dev openssl-dev
+
+WORKDIR /app
+
+COPY . .
+
+RUN cargo build --release --bin windscribe-ephemeral-port
+
+FROM alpine AS runtime
+
+RUN addgroup -g 1000 wind && adduser -u 1000 -G wind -s /bin/sh -D wind
+
+WORKDIR /app
+
+COPY --from=builder /app/target/release/windscribe-ephemeral-port /usr/local/bin
+
+USER wind
+
+ENTRYPOINT ["/usr/local/bin/windscribe-ephemeral-port"]

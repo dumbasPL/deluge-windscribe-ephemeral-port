@@ -1,0 +1,8 @@
+*.MD
+.editorconfig
+Dockerfile
+docker-compose.yml
+config.yaml
+config/
+examples/
+target/
