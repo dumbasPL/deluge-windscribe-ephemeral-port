@@ -1,8 +1,3 @@
-use anyhow::{anyhow, Result};
-use async_trait::async_trait;
-use std::{sync::Arc, time::Duration};
-use tokio::sync::Mutex;
-
 use crate::{
     config::{ClientConfig, ClientConfigType},
     deluge::DelugeClient,
@@ -10,6 +5,10 @@ use crate::{
     qbittorrent::QBittorrentClient,
     transmission::{TransmissionClient, TransmissionCredentials},
 };
+use anyhow::{anyhow, Result};
+use async_trait::async_trait;
+use std::{sync::Arc, time::Duration};
+use tokio::sync::Mutex;
 
 #[async_trait]
 pub trait PortClient: Send + Sync {
@@ -21,13 +20,16 @@ pub trait PortClient: Send + Sync {
     async fn set_port(&self, port: u64) -> Result<()>;
 
     /// Update the port that the client is listening on.
-    async fn update_port(&self, port: u64) -> Result<()> {
+    /// Returns true if the port was updated.
+    async fn update_port(&self, port: u64) -> Result<bool> {
         let current_port = self.get_port().await?;
         match current_port {
-            Some(current_port) if current_port == port => {}
-            _ => self.set_port(port).await?,
+            Some(current_port) if current_port == port => Ok(false),
+            _ => {
+                self.set_port(port).await?;
+                Ok(true)
+            }
         }
-        Ok(())
     }
 }
 
@@ -78,16 +80,18 @@ impl TimedPortClient {
         }
     }
 
-    pub async fn update(&self, new_port: Option<u64>) -> Result<()> {
+    pub async fn update(&self, new_port: Option<u64>) -> Result<bool> {
         let mut desired_port = self.desired_port.lock().await;
         if let Some(port) = new_port {
             *desired_port = Some(port);
         }
 
         if let Some(port) = *desired_port {
-            self.client.update_port(port).await?;
+            let updated = self.client.update_port(port).await?;
+            Ok(updated)
+        } else {
+            Ok(false)
         }
-        Ok(())
     }
 
     pub fn name(&self) -> &str {
