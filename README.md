@@ -56,7 +56,7 @@ volumes:
 
 ## Using nodejs
 
-**This project requires Node.js version 16 or newer**  
+**This project requires Node.js version 18 or newer**  
 **This project uses [yarn](https://classic.yarnpkg.com/) to manage dependencies, make sure you have it installed first.**
 
 1. clone this repository
