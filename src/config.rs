@@ -7,7 +7,7 @@ use std::{
     path::PathBuf,
 };
 use tokio::fs;
-use tracing::warn;
+use tracing::{debug, warn};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -90,10 +90,14 @@ pub async fn load_config(config_path: Option<PathBuf>) -> Result<Config> {
         None => get_config_paths("config.yaml"),
     };
 
+    debug!("Config paths: {:?}", config_paths);
+
     let config_path = config_paths
         .iter()
         .find(|path| path.exists())
         .ok_or_else(|| anyhow!("No config file found, tried: {:?}", config_paths))?;
+
+    debug!("Using config path: {:?}", config_path);
 
     let config = fs::read_to_string(config_path).await?;
     let config: Config =
@@ -104,9 +108,11 @@ pub async fn load_config(config_path: Option<PathBuf>) -> Result<Config> {
 
 pub async fn get_cache(cache_path: Option<PathBuf>, name: &str) -> Result<SimpleCache> {
     let cache_dir = match cache_path {
-        Some(path) => vec![path],
+        Some(path) => vec![path.join(format!("{}.json", name))],
         None => get_config_paths(format!("{}.json", name).as_str()),
     };
+
+    debug!("Cache paths: {:?}", cache_dir);
 
     let existing_cache_path = cache_dir.iter().find(|path| path.exists());
     let cache_path = match existing_cache_path {
@@ -114,10 +120,14 @@ pub async fn get_cache(cache_path: Option<PathBuf>, name: &str) -> Result<Simple
         None => cache_dir.first(),
     };
 
+    debug!("Using cache path: {:?}", cache_path);
+
     // create cache directory if it doesn't exist
     if let Some(directory) = cache_path.and_then(|path| path.parent()) {
         fs::create_dir_all(directory).await?;
     };
+
+    debug!("Loading cache from: {:?}", cache_path);
 
     match cache_path {
         Some(path) => SimpleCache::load(path.to_owned()).await,

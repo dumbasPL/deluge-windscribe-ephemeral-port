@@ -1,6 +1,6 @@
 *.MD
 .editorconfig
-Dockerfile
+Dockerfile*
 docker-compose.yml
 config.yaml
 config/
