@@ -1,7 +1,10 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use clap_verbosity_flag::{InfoLevel, Verbosity};
 use directories::ProjectDirs;
 use tokio::fs;
+use tracing::{info, warn};
+use tracing_log::AsTrace;
 use windscribe_ephemeral_port::{
     cache::SimpleCache,
     windscribe::{WindscribeClient, WindscribeEpfStatus},
@@ -20,6 +23,9 @@ struct Cli {
 
     #[command(subcommand)]
     subcommand: Subcommand,
+
+    #[clap(flatten)]
+    verbose: Verbosity<InfoLevel>,
 }
 
 #[derive(Parser, Debug)]
@@ -46,27 +52,32 @@ enum Subcommand {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
+    tracing_subscriber::fmt()
+        .with_max_level(cli.verbose.log_level_filter().as_trace())
+        .without_time() // your log driver should do that
+        .init();
+
     let dirs = ProjectDirs::from("cc", "nezu", "windscribe-client")
         .map(|dirs| dirs.data_local_dir().to_owned());
 
     let cache = match dirs {
         Some(dirs) => {
             let cache_file = dirs.join("cache.json");
-            println!("Loading cache from: {:?}", cache_file);
+            info!("Loading cache from: {:?}", cache_file);
             fs::create_dir_all(&dirs).await?;
             SimpleCache::load(cache_file).await
         }
         None => {
-            println!("No cache directory found, using in-memory cache");
+            warn!("No cache directory found, using in-memory cache");
             Ok(SimpleCache::default())
         }
     }?;
 
     let client = WindscribeClient::new(&cli.username, &cli.password, cache)?;
 
-    println!("Getting current port info...");
+    info!("Getting current port info...");
     let info = client.get_epf_info().await?;
-    println!("Info: {:?}", info);
+    info!("Info: {:?}", info);
 
     match cli.subcommand {
         Subcommand::GetPort => Ok(()),
@@ -75,34 +86,34 @@ async fn main() -> Result<()> {
                 return Err(anyhow!("No port forwarding to delete"));
             }
 
-            println!("Getting CSRF token...");
+            info!("Getting CSRF token...");
             let csrf_token = client.get_my_account_csrf_token().await?;
-            println!("Deleting current port forwarding...");
+            info!("Deleting current port forwarding...");
             let deleted = client.remove_epf(&csrf_token).await?;
             match deleted {
                 true => {
-                    println!("Port forwarding deleted");
+                    info!("Port forwarding deleted");
                     Ok(())
                 }
                 false => Err(anyhow!("Failed to delete port forwarding")),
             }
         }
         Subcommand::RequestPort { port, delete } => {
-            println!("Getting CSRF token...");
+            info!("Getting CSRF token...");
             let csrf_token = client.get_my_account_csrf_token().await?;
 
             if delete && matches!(info, WindscribeEpfStatus::Enabled(_)) {
-                println!("Deleting current port forwarding...");
+                info!("Deleting current port forwarding...");
                 let deleted = client.remove_epf(&csrf_token).await?;
                 match deleted {
-                    true => println!("Port forwarding deleted"),
-                    false => println!("Failed to delete port forwarding, continuing..."),
+                    true => info!("Port forwarding deleted"),
+                    false => warn!("Failed to delete port forwarding, continuing..."),
                 }
             }
 
-            println!("Requesting port forwarding...");
+            info!("Requesting port forwarding...");
             let info = client.request_epf(&csrf_token, port).await?;
-            println!("Info: {:?}", info);
+            info!("Info: {:?}", info);
 
             Ok(())
         }

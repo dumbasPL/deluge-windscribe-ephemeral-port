@@ -15,8 +15,12 @@ exclude = ["docker-compose.yml", ".editorconfig", "config"]
 [dependencies]
 anyhow = {version = "1.0", features = ["backtrace"]}
 tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-log = "0.1"
+tracing-subscriber = { version =  "0.3", features = ["env-filter"] }
 async-recursion = "1"
 reqwest = { version = "0.11", features = ["json", "cookies", "gzip"] }
+reqwest-middleware = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9"
@@ -25,6 +29,7 @@ chrono = { version = "0.4", features = ["serde"] }
 cookie = "0.17"
 lazy-regex = "3.0"
 clap = { version = "4.3", features = ["derive", "env"] }
+clap-verbosity-flag = "2.0"
 directories = "5.0"
 shell-words = "1.1"
 async-trait = "0.1"

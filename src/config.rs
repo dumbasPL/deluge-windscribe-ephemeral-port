@@ -7,6 +7,7 @@ use std::{
     path::PathBuf,
 };
 use tokio::fs;
+use tracing::warn;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -121,7 +122,7 @@ pub async fn get_cache(cache_path: Option<PathBuf>, name: &str) -> Result<Simple
     match cache_path {
         Some(path) => SimpleCache::load(path.to_owned()).await,
         None => {
-            println!("No cache path found, using in-memory cache");
+            warn!("No cache path found, using in-memory cache");
             Ok(SimpleCache::new())
         }
     }

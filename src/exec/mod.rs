@@ -3,6 +3,7 @@ use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use std::process::Stdio;
 use tokio::process::Command;
+use tracing::info;
 
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
@@ -38,7 +39,7 @@ impl ExecClient {
             .map(|arg| arg.replace("{}", &port.to_string()))
             .collect();
 
-        println!("executing: {} {}", &self.command, shell_words::join(&args));
+        info!("executing: {} {}", &self.command, shell_words::join(&args));
 
         let res = Command::new(&self.command)
             .args(&args)

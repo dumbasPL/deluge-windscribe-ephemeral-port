@@ -98,6 +98,10 @@ impl TimedPortClient {
         self.name.as_ref()
     }
 
+    pub async fn port(&self) -> Option<u64> {
+        *self.desired_port.lock().await
+    }
+
     pub fn check_interval(&self) -> Option<Duration> {
         self.check_interval
     }

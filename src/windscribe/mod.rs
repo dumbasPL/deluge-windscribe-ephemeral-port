@@ -17,6 +17,7 @@ use scraper::{Html, Selector};
 use serde::Serialize;
 
 mod types;
+use tracing::info;
 pub use types::{WindscribeEpfInfo, WindscribeEpfStatus};
 
 const SESSION_COOKIE_CACHE: &str = "windscribe_session_cookie";
@@ -111,7 +112,7 @@ impl WindscribeClient {
                     .single()
                     .ok_or(anyhow!("Session cookie expiration date is not valid"))?;
 
-                println!(
+                info!(
                     "Successfully logged into windscribe, session expires in {} minutes",
                     (expires_chrono - Utc::now()).num_minutes()
                 );
