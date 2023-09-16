@@ -18,75 +18,13 @@ export class QBittorrentClient {
   }
 
   async updateConnection(): Promise<Boolean> {
-    // session check
+    // Unfortunately QBitTorrent does not have a session check
     //if (!await this.qbittorrent.checkSession()) {
     // login if not logged in already
     if (!await this.qbittorrent.login()) {
       throw new Error('Failed to connect to qbittorrent');
     }
     return true;
-    //}
-
-    // connection check
-    // if (!this.currentHost || !await this.qbittorrent.connected()) {
-    //   const { result: hosts, error } = await this.qbittorrent.getHosts();
-
-    //   if (error) {
-    //     throw new Error(`Deluge getHosts error: ${error}`);
-    //   }
-
-    //   if (hosts.length == 0) {
-    //     throw new Error('No qbittorrent hosts available');
-    //   }
-
-    //   let hostId = this.currentHost || this.defaultHostId;
-    //   if (hostId) {
-    //     // make sure the host actually exists
-    //     if (!hosts.some(host => host[0] == hostId)) {
-    //       throw new Error(`Deluge host with id ${hostId} does not exist`);
-    //     }
-    //   } else {
-    //     if (hosts.length == 1) {
-    //       // if we have a single host, just use it
-    //       hostId = hosts[0][0];
-    //       console.log(`Selecting the only available qbittorrent host: ${hostId}`);
-    //     } else {
-    //       console.log(
-    //         `Found ${hosts.length} qbittorrent hosts(id: host:port - status): \n` +
-    //         hosts
-    //           .map(host => `\t${host[0]}: ${host[1]}:${host[2]} - ${host[3]}`)
-    //           .join('\n')
-    //       );
-    //       throw new Error(`Found more than one qbittorrent host, select one via DELUGE_HOST_ID env variable`);
-    //     }
-    //   }
-
-    //   // try to connect if not connected already
-    //   await this.qbittorrent.connect(hostId);
-    //   this.currentHost = hostId;
-    // }
-
-    // // check the status of the current host
-    // const { result: {
-    //   [0]: hostId,
-    //   [1]: status,
-    //   [2]: version,
-    // }, error } = await this.qbittorrent.getHostStatus(this.currentHost);
-
-    // if (error) {
-    //   throw new Error(`Deluge getHostStatus error: ${error}`);
-    // }
-
-    // // this should never fail in theory
-    // if (status != 'Connected') {
-    //   throw new Error('Not connected to qbittorrent');
-    // }
-
-    // // report status
-    // return {
-    //   hostId,
-    //   version,
-    // };
   }
 
   async getPort() {
@@ -94,7 +32,7 @@ export class QBittorrentClient {
     await this.updateConnection();
 
     const { listen_port } = await this.qbittorrent.getPreferences();
-
+    console.log('got listen_port from preferences: ' + listen_port)
     if (!listen_port) {
       throw new Error(`QBittorrent getPreferences->listen_port error`);
     }
