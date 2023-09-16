@@ -24,6 +24,7 @@ let torrentClient: ITorrentClient;
 switch (config.bittorrentClient.toLocaleLowerCase()) { // case insensitive match
   case "qbittorrent":
     torrentClient = new QBittorrentClient(config.delugeUrl, config.bittorrentUsername, config.delugePassword)
+    break;
   case "deluge":
   default:
     torrentClient = new DelugeClient(config.delugeUrl, config.delugePassword, config.delugeHostId)
