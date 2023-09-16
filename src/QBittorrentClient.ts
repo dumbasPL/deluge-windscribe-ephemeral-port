@@ -1,33 +1,41 @@
 import { QBittorrent } from '@ctrl/qbittorrent';
+import { ITorrentClient } from './ITorrentClient.js';
 
-export class QBittorrentClient {
+export class QBittorrentClient implements ITorrentClient {
 
   private qbittorrent: QBittorrent;
-  //private currentHost?: string;
 
   constructor(
     url: string,
+    username: string,
     password: string,
-    private defaultHostId?: string,
   ) {
     this.qbittorrent = new QBittorrent({
       baseUrl: url,
-      username: "admin",
+      username: username,
       password: password,
     });
   }
 
-  async updateConnection(): Promise<Boolean> {
+  async updateConnection(): Promise<{ hostId: string; version: string; }> {
     // Unfortunately QBitTorrent does not have a session check
     //if (!await this.qbittorrent.checkSession()) {
-    // login if not logged in already
+    // attempt to login
     if (!await this.qbittorrent.login()) {
       throw new Error('Failed to connect to qbittorrent');
     }
-    return true;
+
+    // HostId does not exist in @ctrl/qbittorrent
+    // Version not implemented because unused by downstream dependencies
+    let hostId = "N/A"
+    let version = "1"
+    return {
+      hostId,
+      version,
+    };
   }
 
-  async getPort() {
+  async getPort(): Promise<number> {
     // make sure we are connected
     await this.updateConnection();
 
