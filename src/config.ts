@@ -17,11 +17,13 @@ const configTemplate = {
   bittorrentClient: {
     envVariableName: "BIT_TORRENT_CLIENT",
     required: false,
+    default: "deluge",
     type: String,
   } as ConfigTemplateOptionalEntry<string>,
   bittorrentUsername: {
     envVariableName: "BIT_TORRENT_USERNAME",
     required: false,
+    default: "admin",
     type: String,
   } as ConfigTemplateOptionalEntry<string>,
   delugeUrl: {
