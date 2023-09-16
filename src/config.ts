@@ -14,6 +14,16 @@ interface ConfigTemplateOptionalEntry<T extends string | number> extends ConfigT
 }
 
 const configTemplate = {
+  bittorrentClient: {
+    envVariableName: "BIT_TORRENT_CLIENT",
+    required: false,
+    type: String,
+  } as ConfigTemplateOptionalEntry<string>,
+  bittorrentUsername: {
+    envVariableName: "BIT_TORRENT_USERNAME",
+    required: false,
+    type: String,
+  } as ConfigTemplateOptionalEntry<string>,
   delugeUrl: {
     envVariableName: 'DELUGE_URL',
     required: true,
@@ -79,10 +89,10 @@ type entryType =
 type configTemplateType = typeof configTemplate;
 
 type Config =
-  {[key in keyof configTemplateType as configTemplateType[key] extends ConfigTemplateRequiredEntry<string> ? key : never]: string} &
-  {[key in keyof configTemplateType as configTemplateType[key] extends ConfigTemplateOptionalEntry<string> ? key : never]?: string} &
-  {[key in keyof configTemplateType as configTemplateType[key] extends ConfigTemplateOptionalEntry<number> ? key : never]?: number} &
-  {[key in keyof configTemplateType as configTemplateType[key] extends ConfigTemplateOptionalEntry<number> ? key : never]?: number};
+  { [key in keyof configTemplateType as configTemplateType[key] extends ConfigTemplateRequiredEntry<string> ? key : never]: string } &
+  { [key in keyof configTemplateType as configTemplateType[key] extends ConfigTemplateOptionalEntry<string> ? key : never]?: string } &
+  { [key in keyof configTemplateType as configTemplateType[key] extends ConfigTemplateOptionalEntry<number> ? key : never]?: number } &
+  { [key in keyof configTemplateType as configTemplateType[key] extends ConfigTemplateOptionalEntry<number> ? key : never]?: number };
 
 export function getConfig(): Config {
   const entries = Object.entries(configTemplate).map(([name, entry]: [string, entryType]) => {
