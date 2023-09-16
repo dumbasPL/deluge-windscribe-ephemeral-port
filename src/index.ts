@@ -22,9 +22,9 @@ const cache = !config.cacheDir ? undefined : new KeyvFile({
 // init torrent client
 let torrentClient: ITorrentClient;
 if (config.bittorrentClient === null) {
-  config.bittorrentClient = "deluge"
+  config.bittorrentClient = "deluge" // set deluge as default
 }
-switch (config.bittorrentClient.toLocaleLowerCase()) {
+switch (config.bittorrentClient.toLocaleLowerCase()) { // case insensitive match
   case "qbittorrent":
     torrentClient = new QBittorrentClient(config.delugeUrl, config.bittorrentUsername, config.delugePassword)
   case "deluge":
