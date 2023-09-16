@@ -33,12 +33,32 @@
   dependencies:
     "@ctrl/ts-base32" "^2.1.1"
 
+"@ctrl/qbittorrent@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@ctrl/qbittorrent/-/qbittorrent-6.1.0.tgz#0aed876697da3f48853630c1016bb99dc5163c8d"
+  integrity sha512-zSMv08O59YnWcwd4O+3prkEgPrbAN5nUMeL5dv7GmZk52qAEb6V8tPTUXm7cofc7ZotieeTQYL8sUMZo/om3iA==
+  dependencies:
+    "@ctrl/magnet-link" "^3.1.1"
+    "@ctrl/shared-torrent" "^4.3.2"
+    "@ctrl/torrent-file" "^2.0.2"
+    "@ctrl/url-join" "^2.0.2"
+    formdata-node "^5.0.0"
+    got "^12.6.0"
+    tough-cookie "^4.1.2"
+
 "@ctrl/shared-torrent@^4.3.2":
   version "4.3.3"
   resolved "https://registry.yarnpkg.com/@ctrl/shared-torrent/-/shared-torrent-4.3.3.tgz#aef048b7c402c4ab5cbdcc8437a520b1b9f4d2aa"
   integrity sha512-qFaHQCDGrH4gK8JwQmWEMrddHjHCSeDl7qDL6VGZ9UqpjrfBOZ0A0R/yAFvRAI6zTT79h9GvCLfTSnNONEd31g==
   dependencies:
     got "^12.6.0"
+
+"@ctrl/torrent-file@^2.0.2":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@ctrl/torrent-file/-/torrent-file-2.0.3.tgz#59dc5c9e77eedd1338441063442a2eb47df763a6"
+  integrity sha512-1CdDOoFj4Y7ZyDJ1KMIMYOWp7cgmIZVBu6eS5f7Jiu/j7Eg0+Yw35OC8iA4a+Mb/W7dfwOqi3yIQ+Qz/6y69Hw==
+  dependencies:
+    crypto-hash "^2.0.1"
 
 "@ctrl/ts-base32@^2.1.1":
   version "2.1.1"
@@ -512,6 +532,11 @@ cross-spawn@^7.0.2:
     path-key "^3.1.0"
     shebang-command "^2.0.0"
     which "^2.0.1"
+
+crypto-hash@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/crypto-hash/-/crypto-hash-2.0.1.tgz#46c3732e65a078ea06b8b4ae686db41216f81213"
+  integrity sha512-t4mkp7Vh6MuCZRBf0XLzBOfhkH3nW6YEAotMDSjshVQ1GffCMGdPLSr7pKH0rdXY02jTjAZ7QW2apD0buaZXcQ==
 
 debug@^3.2.7:
   version "3.2.7"

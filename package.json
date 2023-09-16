@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@ctrl/deluge": "^4.3.1",
+    "@ctrl/qbittorrent": "^6.1.0",
     "async-lock": "^1.4.0",
     "axios": "^1.4.0",
     "dotenv": "^16.3.1",
