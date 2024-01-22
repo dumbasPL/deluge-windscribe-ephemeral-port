@@ -76,7 +76,7 @@ export class DelugeClient {
     }
 
     // this should never fail in theory
-    if (status != 'Connected') {
+    if (status != 'Connected' && status != 'Online') {
       throw new Error('Not connected to deluge');
     }
 
