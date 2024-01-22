@@ -1,6 +1,7 @@
-import {Deluge} from '@ctrl/deluge';
+import { Deluge } from '@ctrl/deluge';
+import { ITorrentClient } from './ITorrentClient.js';
 
-export class DelugeClient {
+export class DelugeClient implements ITorrentClient {
 
   private deluge: Deluge;
   private currentHost?: string;
@@ -27,7 +28,7 @@ export class DelugeClient {
 
     // connection check
     if (!this.currentHost || !await this.deluge.connected()) {
-      const {result: hosts, error} = await this.deluge.getHosts();
+      const { result: hosts, error } = await this.deluge.getHosts();
 
       if (error) {
         throw new Error(`Deluge getHosts error: ${error}`);
@@ -65,11 +66,11 @@ export class DelugeClient {
     }
 
     // check the status of the current host
-    const {result: {
+    const { result: {
       [0]: hostId,
       [1]: status,
       [2]: version,
-    }, error} = await this.deluge.getHostStatus(this.currentHost);
+    }, error } = await this.deluge.getHostStatus(this.currentHost);
 
     if (error) {
       throw new Error(`Deluge getHostStatus error: ${error}`);
@@ -87,11 +88,11 @@ export class DelugeClient {
     };
   }
 
-  async getPort() {
+  async getPort(): Promise<number> {
     // make sure we are connected
     await this.updateConnection();
 
-    const {error, result: config} = await this.deluge.getConfig();
+    const { error, result: config } = await this.deluge.getConfig();
 
     if (error) {
       throw new Error(`Deluge getConfig error: ${error}`);
@@ -105,7 +106,7 @@ export class DelugeClient {
     await this.updateConnection();
 
     // update port
-    const {error} = await this.deluge.setConfig({
+    const { error } = await this.deluge.setConfig({
       listen_ports: [port, port],
       random_port: false, // turn of random port as well
     });

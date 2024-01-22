@@ -1,10 +1,15 @@
 import 'dotenv/config';
 import path from 'path';
-import {KeyvFile} from 'keyv-file';
-import {getConfig} from './config.js';
-import {DelugeClient} from './DelugeClient.js';
-import {WindscribeClient, WindscribePort} from './WindscribeClient.js';
-import {schedule} from 'node-cron';
+import { KeyvFile } from 'keyv-file';
+import { getConfig } from './config.js';
+import { WindscribeClient, WindscribePort } from './WindscribeClient.js';
+import { schedule } from 'node-cron';
+import { ITorrentClient } from './ITorrentClient.js';
+
+// Can these clients be loaded inside the switch statement?
+import { DelugeClient } from './DelugeClient.js';
+import { QBittorrentClient } from './QBittorrentClient.js';
+
 
 // load config
 const config = getConfig();
@@ -14,15 +19,23 @@ const cache = !config.cacheDir ? undefined : new KeyvFile({
   filename: path.join(config.cacheDir, 'cache.json'),
 });
 
-// inti windscribe client
-const windscribe = new WindscribeClient(config.windscribeUsername, config.windscribePassword, cache);
+// init torrent client
+let torrentClient: ITorrentClient;
+switch (config.bittorrentClient.toLocaleLowerCase()) { // case insensitive match
+  case "qbittorrent":
+    torrentClient = new QBittorrentClient(config.delugeUrl, config.bittorrentUsername, config.delugePassword)
+    break;
+  case "deluge":
+  default:
+    torrentClient = new DelugeClient(config.delugeUrl, config.delugePassword, config.delugeHostId)
+}
 
-// init deluge client
-const deluge = new DelugeClient(config.delugeUrl, config.delugePassword, config.delugeHostId);
+// init windscribe client
+const windscribe = new WindscribeClient(config.windscribeUsername, config.windscribePassword, cache);
 
 // init schedule if configured
 const scheduledTask = !config.cronSchedule ? null :
-  schedule(config.cronSchedule, () => run('schedule'), {scheduled: false});
+  schedule(config.cronSchedule, () => run('schedule'), { scheduled: false });
 
 async function update() {
   let nextRetry: Date = null;
@@ -47,7 +60,7 @@ async function update() {
   }
 
   try {
-    let currentPort = await deluge.getPort();
+    let currentPort = await torrentClient.getPort();
     if (portInfo) {
       if (currentPort == portInfo.port) {
         // no need to update
@@ -55,10 +68,10 @@ async function update() {
       } else {
         // update port to a new one
         console.log(`Current deluge port (${currentPort}) does not match windscribe port (${portInfo.port})`);
-        await deluge.updatePort(portInfo.port);
+        await torrentClient.updatePort(portInfo.port);
 
         // double check
-        currentPort = await deluge.getPort();
+        currentPort = await torrentClient.getPort();
         if (currentPort != portInfo.port) {
           throw new Error(`Unable to set deluge port! Current deluge port: ${currentPort}`);
         }
@@ -89,7 +102,7 @@ async function run(trigger: string) {
   clearTimeout(timeoutId);
 
   // the magic
-  const {nextRun, nextRetry} = await update().catch(error => {
+  const { nextRun, nextRetry } = await update().catch(error => {
     // in theory this should never throw, if it does we have bigger problems
     console.error(error);
     process.exit(1);
